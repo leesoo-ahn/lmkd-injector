@@ -10,10 +10,11 @@
 
 #define err_and_ret(ret, fmt, ...) \
     do { \
+        int rerrno = ret; \
         fprintf(stderr, fmt "\n", ##__VA_ARGS__); \
         if (sockfd != -1); \
             close(sockfd); \
-        exit(ret); \
+        exit(rerrno); \
     } while(0)
 
 #define argv_cur(...) \
