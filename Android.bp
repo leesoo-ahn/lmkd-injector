@@ -1,6 +1,6 @@
 cc_binary {
     name: "lmkd-injector",
-    src: ["*.c"],
+    srcs: ["*.c"],
     cflags: [
         "-Wno-error"
     ]
