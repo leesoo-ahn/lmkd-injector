@@ -37,6 +37,33 @@ struct _cmd {
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
+static inline int
+xclose(int fd)
+{
+#if 0
+    char drop[1];
+
+    shutdown(fd, SHUT_WR);
+    read(fd, drop, sizeof(drop));
+#endif
+    close(fd);
+
+    return 0;
+}
+
+static inline int
+set_linger(int fd)
+{
+    struct linger so_linger;
+
+    so_linger.l_onoff = 1;
+    so_linger.l_linger = 10;
+
+    return setsockopt(fd,
+                      SOL_SOCKET, SO_LINGER,
+                      &so_linger, sizeof(struct linger));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -71,6 +98,10 @@ main(int argc, char *argv[])
     if (sockfd < 0)
         err_and_ret(errno, "error on socket()");
 
+    ret = set_linger(sockfd);
+    if (ret < 0)
+        err_and_ret(errno, "error on set_linger()");
+
     memset(&addr, 0, sizeof(addr));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, sckname, sizeof(addr.sun_path) - 1);
@@ -83,11 +114,8 @@ main(int argc, char *argv[])
     if (ret < 0)
         err_and_ret(errno, "error on write()");
 
-    /* prevent EPOLLHUP on lmkd */
-    sleep(1);
-
     /* done */
-    close(sockfd);
+    xclose(sockfd);
 
     return 0;
 }
